@@ -11,7 +11,7 @@ class Vec:
         self.x = self.v[0]
         self.y = self.v[1]
         self.z = self.v[2]
-        print(self.v)
+        # print(self.v)
 
     def __add__(self, a):
         """a: int,float, Vector
