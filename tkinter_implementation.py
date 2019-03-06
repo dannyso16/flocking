@@ -1,3 +1,5 @@
+# I refers this code.
+# http://code.activestate.com/recipes/576959/
 from tkinter import *
 from random import randint, choice
 from time import clock, sleep

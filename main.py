@@ -25,17 +25,17 @@ class App:
 
     def draw(self):
         pyxel.cls(3)
-        self.window_frame_anim()
-        poss = self.flock.getPositions()
-        vels = self.flock.getVelocitys()
-        isObs = self.flock.getIsObstacle()
+        self._window_frame_anim()
+        poss = self.flock.get_positions()
+        vels = self.flock.get_velocitys()
+        isObs = self.flock.get_is_obstacle()
 
         # print(poss)
         for pos,vel,is_obs in zip(poss, vels, isObs):
-            if is_obs: self.obstacle_anim(int(pos.x), int(pos.y))
-            else:      self.slime_anim(int(pos.x), int(pos.y), vel.x)
+            if is_obs: self._obstacle_anim(int(pos.x), int(pos.y))
+            else:      self._slime_anim(int(pos.x), int(pos.y), vel.x)
 
-    def slime_anim(self, x, y, vx):
+    def _slime_anim(self, x, y, vx):
         # 4 pictures, period=6, each state durate 3 frames
         x,y = x-8,y-8
         state_duration = 3
@@ -46,7 +46,7 @@ class App:
         pyxel.blt(x=x, y=y, img=0,
                   u=u,v=0, w=sign*16, h=16, colkey=12)
 
-    def obstacle_anim(self, x, y):
+    def _obstacle_anim(self, x, y):
         x,y = x-8,y-8
         state_duration = 3
         cur = (pyxel.frame_count//state_duration) % 6
@@ -54,7 +54,7 @@ class App:
         pyxel.rectb(x, y, x+16, y+16, col)
         if cur==3: pyxel.rectb(x+1, y+1, x+15, y+15, col)
 
-    def window_frame_anim(self):
+    def _window_frame_anim(self):
         state_duration = 3
         offset = 0
         x1, y1 = offset, offset

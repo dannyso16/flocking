@@ -6,23 +6,51 @@ import math
 
 # %%
 class FlockingBoid:
+    """
+    This class manages a flock of 'boid' object.
 
-    def __init__(self, flock_size, obstacle_size):
-        """size: number of boids"""
+    Attributes
+    ----------
+    flocking_size : int
+    obstacle_size : int
+    _boids : List[Boid]
+
+    Methods
+    -------
+    update_vel_pos()
+        update all boids position and velocities
+    get_positions()
+        return List[boid.pos]
+    get_velocitys()
+        return List[boid.vel]
+    get_is_obstacle()
+        return List[bool]
+    """
+
+    FPS = 30
+    W,H = 200, 110
+
+    def __init__(self, flock_size:int, obstacle_size:int):
+        """flock_size: number of boids
+        obstacle_size: number of obstacles
+        """
         self._boids = []
+        # instantiate boid
         for i in range(flock_size):
-            x,y = randint(0,200), randint(0,110)
+            x,y = randint(0, self.W), randint(0, self.H)
             vx,vy = randint(-10,10), randint(-10,10)
             p = Vector2(x,y)
             v = Vector2(vx,vy)
-            boid = BoidAgent(p,v, is_obstacle=False)
+            boid = BoidAgent(p, v, is_obstacle=False)
             self._boids.append(boid)
 
+        # instantiate obstacles
         for i in range(obstacle_size):
-            x,y = randint(10,190), randint(10,100)
+            x = randint(self.W//4, self.W*3//4)
+            y = randint(self.H//4, self.H*3//4)
             p = Vector2(x,y)
             v = Vector2(0,0)
-            boid = BoidAgent(p,v, is_obstacle=True)
+            boid = BoidAgent(p, v, is_obstacle=True)
             self._boids.append(boid)
 
     def __repr__(self):
@@ -36,19 +64,19 @@ class FlockingBoid:
             boid.update_vel(self._boids)
             boid.update_pos()
 
-    def getPositions(self):
+    def get_positions(self):
         ps = []
         for boid in self._boids:
             ps.append(boid.pos)
         return ps
 
-    def getVelocitys(self):
+    def get_velocitys(self):
         vs = []
         for boid in self._boids:
             vs.append(boid.vel)
         return vs
 
-    def getIsObstacle(self):
+    def get_is_obstacle(self):
         isObs = []
         for boid in self._boids:
             isObs.append(boid.is_obstacle)
@@ -58,9 +86,33 @@ class FlockingBoid:
 
 # %%
 class BoidAgent:
+    """
+    This class manages each 'boid' instance.
+
+    Attributes
+    ----------
+    pos : Vector2
+        position of object
+    vel : Vector2
+        velocity of object
+    acc : Vector2
+        acceleration of object
+    is_obstacle : bool, default False
+        if True, treated as static object(never update position and velocity)
+
+    Methods
+    -------
+    update_vel(List[boid])
+    update_pos(List[boid])
+
+    TODO
+    ----
+    Boid behavior can control with 3 'coeficient' and FOV(Field of Vison)
+    change these parameters with initialize or slidebar
+    """
 
     RULE_1_COEF = 0.01   # head center of flock
-    RULE_2_COEF = 1.1   # avoid obstacles
+    RULE_2_COEF = 2.1   # avoid obstacles
     RULE_3_COEF = 0.2   # shooling and go same direction
     FOV = 20
     MAX_SPEED = 2
@@ -91,9 +143,9 @@ class BoidAgent:
         if self.vel.magnitude > self.MAX_SPEED:
             self.vel /= self.vel.magnitude/self.MAX_SPEED
         self.pos += self.vel
-        self.bounce_wall() # limit positoni in game window
+        self._bounce_wall() # limit positoni in game window
 
-    def bounce_wall(self):
+    def _bounce_wall(self):
         # left and right
         if self.pos.x < self.MIN_W:
             if self.vel.x<0: self.vel.x *= -1
