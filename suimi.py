@@ -5,9 +5,9 @@ import pyxel
 import math
 
 # %%
-class FlockingBoid:
+class Fishes:
     """
-    This class manages a flock of 'boid' object.
+    This class manages a flock of 'fish' object.
 
     Attributes
     ----------
@@ -28,20 +28,25 @@ class FlockingBoid:
     """
 
     FPS = 30
-    W,H = 200, 110
+    W,H = 200, 200
 
     def __init__(self, flock_size:int, obstacle_size:int):
         """flock_size: number of boids
         obstacle_size: number of obstacles
+        only one leader you can control
         """
         self._boids = []
         # instantiate boid
-        for i in range(flock_size):
+        p = Vector2(self.W//2, self.H//2)
+        v = Vector2(0, 0)
+        leader = FishAgent(p, v, is_obstacle=False, is_leader=True)
+        self._boids.append(leader)
+        for i in range(flock_size-1):
             x,y = randint(0, self.W), randint(0, self.H)
             vx,vy = randint(-10,10), randint(-10,10)
             p = Vector2(x,y)
             v = Vector2(vx,vy)
-            boid = BoidAgent(p, v, is_obstacle=False)
+            boid = FishAgent(p, v, is_obstacle=False, is_leader=False)
             self._boids.append(boid)
 
         # instantiate obstacles
@@ -50,7 +55,7 @@ class FlockingBoid:
             y = randint(self.H//4, self.H*3//4)
             p = Vector2(x,y)
             v = Vector2(0,0)
-            boid = BoidAgent(p, v, is_obstacle=True)
+            boid = FishAgent(p, v, is_obstacle=True)
             self._boids.append(boid)
 
     def __repr__(self):
@@ -82,12 +87,20 @@ class FlockingBoid:
             isObs.append(boid.is_obstacle)
         return isObs
 
+    def get_is_leader(self):
+        isLead = []
+        for boid in self._boids:
+            isLead.append(boid.is_leader)
+        return isLead
+
 
 
 # %%
-class BoidAgent:
+class FishAgent:
     """
-    This class manages each 'boid' instance.
+    This class manages each 'fish' instance.
+    'boid.py' : you cannot control the flock
+    'suimi.py': you can control the leader fish.(all fishes follow him.)
 
     Attributes
     ----------
@@ -99,43 +112,49 @@ class BoidAgent:
         acceleration of object
     is_obstacle : bool, default False
         if True, treated as static object(never update position and velocity)
+    is_leader : bool, default False
+        if True, you can control him.
 
     Methods
     -------
     update_vel(List[boid])
     update_pos(List[boid])
-
-    TODO
-    ----
-    Boid behavior can control with 3 'coeficient' and FOV(Field of Vison)
-    change these parameters with initialize or slidebar
     """
 
-    RULE_1_COEF = 0.01   # head center of flock
-    RULE_2_COEF = 2.1   # avoid obstacles
+    RULE_1_COEF = 0.01  # head center of flock
+    RULE_2_COEF = 1.0   # avoid obstacles
     RULE_3_COEF = 0.2   # shooling and go same direction
-    FOV = 20
-    MAX_SPEED = 2
-    MIN_W, MAX_W = 5, 195
-    MIN_H, MAX_H = 5, 105
+    FOV = 10
+    MAX_SPEED = 1.2
+    MIN_W, MAX_W = 7, 192
+    MIN_H, MAX_H = 7, 192
 
-    def __init__(self, pos, vel, is_obstacle=False):
+    def __init__(self, pos, vel, is_obstacle=False, is_leader=False):
         self.pos = pos
         self.vel = vel
         self.acc = Vector2(0,0)
         self.is_obstacle = is_obstacle
+        self.is_leader = is_leader
 
     def __repr__(self):
         return "<BoidAgent>:pos=({},{}),vel=({},{})".format(
                 self.pos.x, self.pos.y, self.vel.x, self.vel.y)
 
     def update_vel(self, boids):
+        VEL = .9
         if self.is_obstacle: return
-        vec1 = self._rule1(boids)
-        vec2 = self._rule2(boids)
-        vec3 = self._rule3(boids)
-        # print("1:{},2:{},3:{}".format(vec1,vec2,vec3))
-        self.acc = vec1 + vec2 + vec3
+        if self.is_leader:
+            self.acc = Vector2(0, 0)
+            if pyxel.btn(pyxel.KEY_UP):    self.acc.y -= VEL
+            if pyxel.btn(pyxel.KEY_DOWN):  self.acc.y += VEL
+            if pyxel.btn(pyxel.KEY_RIGHT): self.acc.x += VEL
+            if pyxel.btn(pyxel.KEY_LEFT):  self.acc.x -= VEL
+        else:
+            vec1 = self._rule1(boids)
+            vec2 = self._rule2(boids)
+            vec3 = self._rule3(boids)
+            # print("1:{},2:{},3:{}".format(vec1,vec2,vec3))
+            self.acc = vec1 + vec2 + vec3
 
     def update_pos(self):
         if self.is_obstacle: return
@@ -158,12 +177,12 @@ class BoidAgent:
             if self.vel.y>0: self.vel.y *= -1
 
     def _rule1(self, boids):
-        """head to the center of flock"""
-        vector = Vector2(0,0)
+        """head to the leader"""
         for boid in boids:
-            vector += boid.pos
-        vector /= len(boids)
-        return (vector - self.pos) * self.RULE_1_COEF
+            if boid.is_leader:
+                return (boid.pos - self.pos) * self.RULE_1_COEF
+        else:
+            raise AttributeError("No leader in this flock")
 
     def _rule2(self, boids):
         """avoid obstacles"""
@@ -176,12 +195,12 @@ class BoidAgent:
         return vector * self.RULE_2_COEF
 
     def _rule3(self, boids):
-        """schoolng and go same direction"""
-        vector = Vector2(0,0)
+        """schoolng and go same direction with the leader"""
         for boid in boids:
-            vector += boid.vel
-        vector /= len(boids)
-        return (vector - self.vel) * self.RULE_3_COEF
+            if boid.is_leader:
+                return (boid.vel - self.vel) * self.RULE_3_COEF
+        else:
+            raise AttributeError("No leader in this flock")
 
 
 # %%
