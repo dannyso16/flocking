@@ -1,17 +1,19 @@
-# Flocking
+## Flocking
 **Boid** algorithm implementation.
-The detail is described [here (wikipedia)]().
+The detail is described [here(wikipedia)](https://en.wikipedia.org/wiki/Boids).
 
-You need `import pyxel`.  Please see here [pyxel github]().
+You need to `import pyxel`.  Please see here [pyxel github](https://github.com/kitao/pyxel).
 
-- main_boid.py  -> Cute slimes are hopping around.
+### Files
 
-  ![slimes](C:\Users\HOME\Documents\GitHub\flocking\README.assets\slimes.gif)
+- __main_boid.py__  -> Cute slimes are hopping around.
 
-- main_suimi.py -> You can control the flock of fishes.
+  ![slimes](https://github.com/dannyso16/flocking/blob/master/gifs/slimes.gif)
 
-  ![スイミー](C:\Users\HOME\Documents\GitHub\flocking\README.assets\スイミー-1554005537047.gif)
+- __main_suimi.py__ -> You can control the flock of fishes.
 
-- boid.py  -> BoidAgent and Boid classes are defined.
+  ![スイミー](https://github.com/dannyso16/flocking/blob/master/gifs/%E3%82%B9%E3%82%A4%E3%83%9F%E3%83%BC.gif)
 
-- suimi.py -> This is revised Boid algorithm to control the flock with your keyboard.
+- __boid.py__  -> BoidAgent and Boid classes are defined.
+
+- __suimi.py__ -> This is revised Boid algorithm to control the flock with your keyboard.
